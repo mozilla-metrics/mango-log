@@ -104,6 +104,13 @@ public class LogLine {
 		return true;
 	}
 	
+	public Vector<String> getDbLogLine() {
+		return dbLogLine;
+	}
+	
+	public Matcher getDbSplitPattern() {
+		return m;
+	}
 	
 	
 	public boolean addHttpLogInfo() {
