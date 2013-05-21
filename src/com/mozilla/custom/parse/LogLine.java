@@ -113,14 +113,12 @@ public class LogLine {
 	}
 	
 	
-	public boolean addHttpLogInfo() {
+	public void addHttpLogInfo() {
 		dbLogLine.insertElementAt(m.group(5), 10);
 		dbLogLine.insertElementAt(m.group(6), 11);
 		dbLogLine.insertElementAt(m.group(7), 12);
 		dbLogLine.insertElementAt(m.group(8), 13);
 		dbLogLine.insertElementAt(m.group(9), 14);
-		
-		return true;
 	}
 	
 	public boolean addUserAgentInfo(Parser ua_parser) {
@@ -174,19 +172,21 @@ public class LogLine {
 		return true;
 	}
 
-	public boolean addCustomAndOtherInfo() {
+	public void addCustomAndOtherInfo() {
 		dbLogLine.insertElementAt(m.group(12), 22);
 		if (m.groupCount() == 13) {
 			dbLogLine.insertElementAt(m.group(13), 23);
 		} else {
 			dbLogLine.insertElementAt("-", 23);
 		}
-		return true;
 	}
 	
 	public boolean addFilename(String filename) {
-		dbLogLine.insertElementAt(filename, 24);
-		return true;
+		if (StringUtils.isNotEmpty(filename)) {
+			dbLogLine.insertElementAt(filename, 24);
+			return true;
+		}
+		return false;
 	}
 	
 	public boolean checkOutputFormat() {

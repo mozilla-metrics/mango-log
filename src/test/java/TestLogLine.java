@@ -7,6 +7,8 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
+import ua_parser.Parser;
+
 import com.mozilla.custom.parse.LogLine;
 
 /**
@@ -146,14 +148,38 @@ public class TestLogLine {
 
 	}
 
-	
-	
-	/**
-	 * Test method for {@link com.mozilla.custom.parse.LogLine#getAnonymousTableString()}.
-	 */
 	@Test
-	public void testGetAnonymousTableString() {
-		fail("Not yet implemented");
+	public void testInCorrectaddDate() {
+
+		String v = "1.1.1.1 versioncheck.addons.mozilla.org - [14/May/2013:07:00:09 -0700] \"GET /update/VersionCheck.php?reqVersion=2&id={972ce4c6-7e08-4474-a285-3208198ce6fd}&version=10.0&maxAppVersion=10.0&status=userEnabled&appID={ec8030f7-c20a-464f-9b0e-13a3a9e97384}&appVersion=10.0&appOS=WINNT&appABI=x86-msvc&locale=en-US&currentAppVersion=10.0&updateType=112&compatMode=normal HTTP/1.1\" 200 525 \"-\" \"Mozilla/5.0 (Windows NT 6.1; rv:10.0) Gecko/20100101 Firefox/10.0\" \"__utma=150903082.733308021.1361633654.1361633654.1361633654.1; __utmz=150903082.1361633654.1.1.utmcsr=firstrow1.eu|utmccn=(referral)|utmcmd=referral|utmcct=/watch/155095/1/watch-manchester-united-vs-queens-park-rangers.html\"";		
+		LogLine ll;
+		try {
+			ll = new LogLine(v);
+			assertEquals(ll.validateSplitCount(), 12);
+			assertTrue(ll.addDate());
+
+			assertNotSame(ll.getDbLogLine().get(0), "2013-05-15:14:00:09 +0000");
+			
+		} catch (Exception e) {
+			assertNull(e.getMessage());
+		}
+
 	}
+
+	@Test
+	public void testaddFilename() {
+		String v = "1.1.1.1 versioncheck.addons.mozilla.org - [14/May/2013:07:00:09 -0700] \"GET /update/VersionCheck.php?reqVersion=2&id={972ce4c6-7e08-4474-a285-3208198ce6fd}&version=10.0&maxAppVersion=10.0&status=userEnabled&appID={ec8030f7-c20a-464f-9b0e-13a3a9e97384}&appVersion=10.0&appOS=WINNT&appABI=x86-msvc&locale=en-US&currentAppVersion=10.0&updateType=112&compatMode=normal HTTP/1.1\" 200 525 \"-\" \"Mozilla/5.0 (Windows NT 6.1; rv:10.0) Gecko/20100101 Firefox/10.0\" \"__utma=150903082.733308021.1361633654.1361633654.1361633654.1; __utmz=150903082.1361633654.1.1.utmcsr=firstrow1.eu|utmccn=(referral)|utmcmd=referral|utmcct=/watch/155095/1/watch-manchester-united-vs-queens-park-rangers.html\"";		
+		LogLine ll;
+		try {
+			ll = new LogLine(v);
+			assertEquals(ll.validateSplitCount(), 12);
+			assertFalse(ll.addFilename(null));
+			assertFalse(ll.addFilename(""));
+		} catch (Exception e) {
+			assertNull(e.getMessage());
+		}
+		
+	}
+
 
 }
