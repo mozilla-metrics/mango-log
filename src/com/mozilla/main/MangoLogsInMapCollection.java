@@ -187,7 +187,7 @@ public class MangoLogsInMapCollection {
 
 					logline.addCustomAndOtherInfo();
 
-					if (!logline.addFilename(value.toString())) {
+					if (!logline.addFilename(input_fname)) { //value.toString()
 						validAnonymizedLine = false;
 					}
 
@@ -223,16 +223,13 @@ public class MangoLogsInMapCollection {
 				e.printStackTrace();
 			}
 
-			context.write(new Text(v), new Text(input_fname));
+		//	context.write(new Text(v), new Text(input_fname));
 		}
-		
 		protected void cleanup(Context context) throws IOException, InterruptedException {
 			mos.close();
 		}
 
 	}
-
-	
 
 	/**
 	 * The reducer class of WordCount
@@ -243,60 +240,61 @@ public class MangoLogsInMapCollection {
 		public void reduce(Text key, Iterable<Text> values,
 				Context context) throws IOException, InterruptedException {
 			for (Text value : values) {
-
+				context.write(key, value);
+				break;
 			}
 
 		}
+	}
 
-		/**
-		 * The main entry point.
-		 */
-		public static void main(String[] args) throws Exception {
-			if (args.length < 2) {
-				System.out.println("Usage:\nhadoop jar lzo.jar " +
-						"<input> <output> <# of reducers>\n");
-			}
-			Configuration c = new Configuration();
-			DistributedCache.addCacheFile(new URI(DISTRIBUTED_CACHE_URI + GEOIP_CITY_DAT), c);
-			DistributedCache.addCacheFile(new URI(DISTRIBUTED_CACHE_URI + GEOIP_DOMAIN_DAT), c);
-			DistributedCache.addCacheFile(new URI(DISTRIBUTED_CACHE_URI + GEOIP_ISP_DAT), c);
-			DistributedCache.addCacheFile(new URI(DISTRIBUTED_CACHE_URI + GEOIP_ORG_DAT), c);
-			DistributedCache.addCacheFile(new URI(DISTRIBUTED_CACHE_URI + "regexes.yaml"), c);
-
-			Job job;
-			if (StringUtils.isNotBlank(args[3])) {
-				job = new Job(c, args[3] + "backfill-" + args[0] + "-" + args[1]);
-			}
-			else {
-				job = new Job(c, "backfill-" + args[0] + "-" + args[1]);
-			}
-
-			MultipleOutputs.addNamedOutput(job, ANONYMIZED_PREFIX, TextOutputFormat.class , Text.class, Text.class);
-			MultipleOutputs.addNamedOutput(job, RAW_PREFIX, TextOutputFormat.class , Text.class, Text.class);
-
-			job.setJarByClass(MangoLogsInMapCollection.class);
-
-			job.setMapperClass(MangoLogsInMapCollectionMapper.class);
-			job.setReducerClass(MangoLogsInMapCollectionReducer.class);
-			job.setOutputKeyClass(Text.class);
-			job.setOutputValueClass(Text.class);
-			job.setJobName("Logs " + args[3] + " " + args[2]);
-			job.setOutputFormatClass(SequenceFileOutputFormat.class);
-
-			FileOutputFormat.setCompressOutput(job, true);
-
-			FileOutputFormat.setOutputCompressorClass(job, GzipCodec.class);	
-
-			FileInputFormat.addInputPath(job, new Path(args[0]));
-			FileOutputFormat.setOutputPath(job, new Path(args[1]));
-			if (StringUtils.isNotBlank(args[2]) && Integer.parseInt(args[2]) > 0) {
-				job.setNumReduceTasks(Integer.parseInt(args[2]));
-			} else {
-				job.setNumReduceTasks(20);
-			}
-
-			System.exit(job.waitForCompletion(true) ? 0 : 1);
-
+	/**
+	 * The main entry point.
+	 */
+	public static void main(String[] args) throws Exception {
+		if (args.length < 2) {
+			System.out.println("Usage:\nhadoop jar lzo.jar " +
+					"<input> <output> <# of reducers>\n");
 		}
+		Configuration c = new Configuration();
+		DistributedCache.addCacheFile(new URI(DISTRIBUTED_CACHE_URI + GEOIP_CITY_DAT), c);
+		DistributedCache.addCacheFile(new URI(DISTRIBUTED_CACHE_URI + GEOIP_DOMAIN_DAT), c);
+		DistributedCache.addCacheFile(new URI(DISTRIBUTED_CACHE_URI + GEOIP_ISP_DAT), c);
+		DistributedCache.addCacheFile(new URI(DISTRIBUTED_CACHE_URI + GEOIP_ORG_DAT), c);
+		DistributedCache.addCacheFile(new URI(DISTRIBUTED_CACHE_URI + "regexes.yaml"), c);
+
+		Job job;
+		if (StringUtils.isNotBlank(args[3])) {
+			job = new Job(c, args[3] + "backfill-" + args[0] + "-" + args[1]);
+		}
+		else {
+			job = new Job(c, "backfill-" + args[0] + "-" + args[1]);
+		}
+
+		MultipleOutputs.addNamedOutput(job, ANONYMIZED_PREFIX, TextOutputFormat.class , Text.class, Text.class);
+		MultipleOutputs.addNamedOutput(job, RAW_PREFIX, TextOutputFormat.class , Text.class, Text.class);
+
+		job.setJarByClass(MangoLogsInMapCollection.class);
+
+		job.setMapperClass(MangoLogsInMapCollectionMapper.class);
+		job.setReducerClass(MangoLogsInMapCollectionReducer.class);
+		job.setOutputKeyClass(Text.class);
+		job.setOutputValueClass(Text.class);
+		job.setJobName("Logs " + args[3] + " " + args[2]);
+		job.setOutputFormatClass(SequenceFileOutputFormat.class);
+
+		FileOutputFormat.setCompressOutput(job, true);
+
+		FileOutputFormat.setOutputCompressorClass(job, GzipCodec.class);	
+
+		FileInputFormat.addInputPath(job, new Path(args[0]));
+		FileOutputFormat.setOutputPath(job, new Path(args[1]));
+		if (StringUtils.isNotBlank(args[2]) && Integer.parseInt(args[2]) > 0) {
+			job.setNumReduceTasks(Integer.parseInt(args[2]));
+		} else {
+			job.setNumReduceTasks(20);
+		}
+
+		System.exit(job.waitForCompletion(true) ? 0 : 1);
+
 	}
 }
