@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.compress.GzipCodec;
 import org.apache.hadoop.mapreduce.Job;
@@ -89,6 +90,7 @@ public class MangoLogsInMapCollection {
 			domain_name = splitSlash[splitSlash.length - 1];
 			customparse = new com.mozilla.custom.parse.CustomParse();
 			mos = new MultipleOutputs<Text, Text>(context);
+			
 			context.getCounter(LOG_PROGRESS.SETUP_CALLS).increment(1);
 			try {
 				localFiles = DistributedCache.getLocalCacheFiles(context.getConfiguration());
@@ -168,7 +170,7 @@ public class MangoLogsInMapCollection {
 				splitTab = new Vector<String>();
 				if (logline.validateSplitCount() > 0) {
 					context.getCounter(LOG_PROGRESS.VALID_SPLIT).increment(1);
-					mos.write(RAW_PREFIX, logline.getRawTableString(), "");
+					//mos.write(RAW_PREFIX, logline.getRawTableString(), "");
 					context.getCounter(LOG_PROGRESS.VALID_RAW_LINE_COUNT).increment(1);
 
 					if (logline.addDate()) {
@@ -192,18 +194,21 @@ public class MangoLogsInMapCollection {
 					}
 
 					if (validAnonymizedLine) {
+						
 						if (logline.checkOutputFormat()) {
-							mos.write(ANONYMIZED_PREFIX, logline.getOutputLine(), "");
+
+							mos.write(ANONYMIZED_PREFIX, new Text(ANONYMIZED_PREFIX) , new Text(logline.getOutputLine()));
+							//context.write(new Text(ANONYMIZED_PREFIX), new Text(logline.getOutputLine()));
 							context.getCounter(LOG_PROGRESS.VALID_ANONYMOUS_LINE_COUNT).increment(1);
 
 						} else {
-							context.write(new Text(logline.getOutputLine()), new Text(""));
+							//context.write(new Text(logline.getOutputLine()), new Text(""));
 							context.getCounter(LOG_PROGRESS.INVALID_ANONYMOUS_SPLIT_COUNT).increment(1);
 
 						}
 
 					} else {
-						context.write(value, new Text(""));
+						//context.write(value, new Text(""));
 						context.getCounter(LOG_PROGRESS.INVALID_ANONYMOUS_LINE_COUNT).increment(1);
 
 					}
@@ -214,7 +219,7 @@ public class MangoLogsInMapCollection {
 					} else {
 						context.getCounter(LOG_PROGRESS.INVALID_SPLIT).increment(1);
 					}
-					context.write(value, new Text(""));
+					//context.write(value, new Text(""));
 
 				}
 
@@ -223,7 +228,7 @@ public class MangoLogsInMapCollection {
 				e.printStackTrace();
 			}
 
-		//	context.write(new Text(v), new Text(input_fname));
+			//	context.write(new Text(v), new Text(input_fname));
 		}
 		protected void cleanup(Context context) throws IOException, InterruptedException {
 			mos.close();
@@ -235,14 +240,12 @@ public class MangoLogsInMapCollection {
 	 * The reducer class of WordCount
 	 */
 	public static class MangoLogsInMapCollectionReducer extends
-	Reducer<Text, Text, Text, Text> {
+	Reducer<Text, Text, LongWritable, Text> {
 
 		public void reduce(Text key, Iterable<Text> values,
 				Context context) throws IOException, InterruptedException {
-			for (Text value : values) {
-				context.write(key, value);
-				break;
-			}
+			context.write(new LongWritable(1L), key);
+
 
 		}
 	}
@@ -263,15 +266,7 @@ public class MangoLogsInMapCollection {
 		DistributedCache.addCacheFile(new URI(DISTRIBUTED_CACHE_URI + "regexes.yaml"), c);
 
 		Job job;
-		if (StringUtils.isNotBlank(args[3])) {
-			job = new Job(c, args[3] + "backfill-" + args[0] + "-" + args[1]);
-		}
-		else {
-			job = new Job(c, "backfill-" + args[0] + "-" + args[1]);
-		}
-
-		MultipleOutputs.addNamedOutput(job, ANONYMIZED_PREFIX, TextOutputFormat.class , Text.class, Text.class);
-		MultipleOutputs.addNamedOutput(job, RAW_PREFIX, TextOutputFormat.class , Text.class, Text.class);
+		job = new Job(c, "backfill-" + args[0] + "-" + args[1]);
 
 		job.setJarByClass(MangoLogsInMapCollection.class);
 
@@ -279,7 +274,7 @@ public class MangoLogsInMapCollection {
 		job.setReducerClass(MangoLogsInMapCollectionReducer.class);
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(Text.class);
-		job.setJobName("Logs " + args[3] + " " + args[2]);
+		job.setJobName("Logs " + args[2]);
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
 
 		FileOutputFormat.setCompressOutput(job, true);
@@ -287,13 +282,19 @@ public class MangoLogsInMapCollection {
 		FileOutputFormat.setOutputCompressorClass(job, GzipCodec.class);	
 
 		FileInputFormat.addInputPath(job, new Path(args[0]));
-		FileOutputFormat.setOutputPath(job, new Path(args[1]));
-		if (StringUtils.isNotBlank(args[2]) && Integer.parseInt(args[2]) > 0) {
-			job.setNumReduceTasks(Integer.parseInt(args[2]));
-		} else {
-			job.setNumReduceTasks(20);
-		}
+		SequenceFileOutputFormat.setOutputPath(job, new Path(args[1]));
 
+		MultipleOutputs.addNamedOutput(job, ANONYMIZED_PREFIX, SequenceFileOutputFormat.class , Text.class, Text.class);
+		MultipleOutputs.addNamedOutput(job, RAW_PREFIX, SequenceFileOutputFormat.class , Text.class, Text.class);
+
+		
+		//		if (StringUtils.isNotBlank(args[2]) && Integer.parseInt(args[2]) > 0) {
+		//			job.setNumReduceTasks(Integer.parseInt(args[2]));
+		//		} else {
+		//			job.setNumReduceTasks(20);
+		//		}
+		job.setNumReduceTasks(0);
+		
 		System.exit(job.waitForCompletion(true) ? 0 : 1);
 
 	}

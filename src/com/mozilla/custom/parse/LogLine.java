@@ -179,18 +179,19 @@ public class LogLine {
 		} else {
 			dbLogLine.insertElementAt("-", 23);
 		}
+		dbLogLine.insertElementAt("-", 24);
 	}
 	
 	public boolean addFilename(String filename) {
 		if (StringUtils.isNotEmpty(filename)) {
-			dbLogLine.insertElementAt(filename, 24);
+			dbLogLine.insertElementAt(filename, 25);
 			return true;
 		}
 		return false;
 	}
 	
 	public boolean checkOutputFormat() {
-		if (dbLogLine.size() == 25) {
+		if (dbLogLine.size() == 26) {
 			return true;
 		}
 		return false;
@@ -201,7 +202,7 @@ public class LogLine {
 		for (String st : dbLogLine) {
 			sb.append(st + "\t");
 		}
-		return sb.toString();
+		return sb.toString().trim();
 
 	}
 	
