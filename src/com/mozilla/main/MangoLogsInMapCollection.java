@@ -47,6 +47,7 @@ public class MangoLogsInMapCollection {
 	static enum LOG_PROGRESS { ZERO_SIZED_HTTP_REQUEST, MAPPER_LINE_COUNT, INVALID_ANONYMOUS_SPLIT_COUNT, ERROR_UA_PARSER, LOG_LINES, INVALID_SPLIT, VALID_SPLIT, ERROR_DISTRIBUTED_CACHE, ERROR_GEOIP_DAT_URI_MISSING, ERROR_GEOIP_CITY_DAT_URI_MISSING, ERROR_GEOIP_DOMAIN_DAT_URI_MISSING, SETUP_CALLS, ERROR_GEOIP_LOOKUP,ERROR_REGEXES_YAML_LOOKUP, INVALID_DATE_FORMAT, INVALID_GEO_LOOKUP, VALID_ANONYMOUS_LINE_COUNT, INVALID_ANONYMOUS_LINE_COUNT, VALID_RAW_LINE_COUNT, ERROR_GEOIP_ISP_DAT_URI_MISSING, ERROR_GEOIP_ORG_DAT_URI_MISSING };
 	public static String ANONYMIZED_PREFIX = "anonymized";
 	public static String RAW_PREFIX = "raw";
+	public static String ERROR_PREFIX = "error";
 	public static String DISTRIBUTED_CACHE_URI = "hdfs://admin1.testing.stage.metrics.scl3.mozilla.com:8020/user/aphadke/maxmind/";
 	public static String GEOIP_CITY_DAT = "GeoIPCity.dat";
 	public static String GEOIP_ORG_DAT = "GeoIPOrg.dat";
@@ -170,7 +171,8 @@ public class MangoLogsInMapCollection {
 				splitTab = new Vector<String>();
 				if (logline.validateSplitCount() > 0) {
 					context.getCounter(LOG_PROGRESS.VALID_SPLIT).increment(1);
-					//mos.write(RAW_PREFIX, logline.getRawTableString(), "");
+					mos.write(RAW_PREFIX, new Text(RAW_PREFIX) , new Text(logline.getRawTableString()));					
+
 					context.getCounter(LOG_PROGRESS.VALID_RAW_LINE_COUNT).increment(1);
 
 					if (logline.addDate()) {
@@ -198,37 +200,37 @@ public class MangoLogsInMapCollection {
 						if (logline.checkOutputFormat()) {
 
 							mos.write(ANONYMIZED_PREFIX, new Text(ANONYMIZED_PREFIX) , new Text(logline.getOutputLine()));
-							//context.write(new Text(ANONYMIZED_PREFIX), new Text(logline.getOutputLine()));
 							context.getCounter(LOG_PROGRESS.VALID_ANONYMOUS_LINE_COUNT).increment(1);
 
 						} else {
-							//context.write(new Text(logline.getOutputLine()), new Text(""));
+							validAnonymizedLine = false;
 							context.getCounter(LOG_PROGRESS.INVALID_ANONYMOUS_SPLIT_COUNT).increment(1);
 
 						}
 
 					} else {
-						//context.write(value, new Text(""));
 						context.getCounter(LOG_PROGRESS.INVALID_ANONYMOUS_LINE_COUNT).increment(1);
 
 					}
 
 				} else {
+					validAnonymizedLine = false;
 					if (v.contains("\"  \" - 0 \"-\" \"-\" \"-\"")) {
 						context.getCounter(LOG_PROGRESS.ZERO_SIZED_HTTP_REQUEST).increment(1);
 					} else {
 						context.getCounter(LOG_PROGRESS.INVALID_SPLIT).increment(1);
 					}
-					//context.write(value, new Text(""));
-
 				}
 
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}
+			} finally {
+				if (!validAnonymizedLine) {
+					mos.write(ERROR_PREFIX, new Text(ERROR_PREFIX) , new Text(value));
+				}
 
-			//	context.write(new Text(v), new Text(input_fname));
+			}
 		}
 		protected void cleanup(Context context) throws IOException, InterruptedException {
 			mos.close();
@@ -244,7 +246,7 @@ public class MangoLogsInMapCollection {
 
 		public void reduce(Text key, Iterable<Text> values,
 				Context context) throws IOException, InterruptedException {
-			context.write(new LongWritable(1L), key);
+			//context.write(new LongWritable(1L), key);
 
 
 		}
@@ -278,7 +280,6 @@ public class MangoLogsInMapCollection {
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
 
 		FileOutputFormat.setCompressOutput(job, true);
-
 		FileOutputFormat.setOutputCompressorClass(job, GzipCodec.class);	
 
 		FileInputFormat.addInputPath(job, new Path(args[0]));
@@ -286,13 +287,8 @@ public class MangoLogsInMapCollection {
 
 		MultipleOutputs.addNamedOutput(job, ANONYMIZED_PREFIX, SequenceFileOutputFormat.class , Text.class, Text.class);
 		MultipleOutputs.addNamedOutput(job, RAW_PREFIX, SequenceFileOutputFormat.class , Text.class, Text.class);
+		MultipleOutputs.addNamedOutput(job, ERROR_PREFIX, SequenceFileOutputFormat.class , Text.class, Text.class);
 
-		
-		//		if (StringUtils.isNotBlank(args[2]) && Integer.parseInt(args[2]) > 0) {
-		//			job.setNumReduceTasks(Integer.parseInt(args[2]));
-		//		} else {
-		//			job.setNumReduceTasks(20);
-		//		}
 		job.setNumReduceTasks(0);
 		
 		System.exit(job.waitForCompletion(true) ? 0 : 1);
