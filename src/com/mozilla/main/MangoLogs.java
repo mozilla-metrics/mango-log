@@ -177,7 +177,7 @@ public class MangoLogs {
 					logline = new LogLine(v);
 					
 					splitTab = new Vector<String>();
-					if (logline.validateSplitCount() > 0) {
+					if (logline.getSplitCount() > 0) {
 						context.getCounter(LOG_PROGRESS.VALID_SPLIT).increment(1);
 						mos.write(RAW_PREFIX, logline.getRawTableString(), "");
 						context.getCounter(LOG_PROGRESS.VALID_RAW_LINE_COUNT).increment(1);

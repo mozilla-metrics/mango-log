@@ -42,7 +42,7 @@ public class TestLogLine {
 		LogLine ll;
 		try {
 			ll = new LogLine(v);
-			assertEquals(ll.validateSplitCount(), 12);
+			assertEquals(ll.getSplitCount(), 12);
 		} catch (Exception e) {
 			assertNull(e.getMessage());
 		}
@@ -58,7 +58,7 @@ public class TestLogLine {
 		LogLine ll;
 		try {
 			ll = new LogLine(v);
-			assertEquals(ll.validateSplitCount(), 12);
+			assertEquals(ll.getSplitCount(), 12);
 		} catch (Exception e) {
 			assertNull(e.getMessage());
 		}
@@ -73,7 +73,7 @@ public class TestLogLine {
 		LogLine ll;
 		try {
 			ll = new LogLine(v);
-			assertEquals(ll.validateSplitCount(), 12);
+			assertEquals(ll.getSplitCount(), 12);
 		} catch (Exception e) {
 			assertNull(e.getMessage());
 		}
@@ -89,7 +89,7 @@ public class TestLogLine {
 		LogLine ll;
 		try {
 			ll = new LogLine(v);
-			assertEquals(ll.validateSplitCount(), 12);
+			assertEquals(ll.getSplitCount(), 12);
 		} catch (Exception e) {
 			assertNull(e.getMessage());
 		}
@@ -104,7 +104,7 @@ public class TestLogLine {
 		LogLine ll;
 		try {
 			ll = new LogLine(v);
-			assertEquals(ll.validateSplitCount(), -1);
+			assertEquals(ll.getSplitCount(), -1);
 		} catch (Exception e) {
 			assertNull(e.getMessage());
 		}
@@ -121,7 +121,7 @@ public class TestLogLine {
 		LogLine ll;
 		try {
 			ll = new LogLine(v);
-			assertEquals(ll.validateSplitCount(), 12);
+			assertEquals(ll.getSplitCount(), 12);
 			assertNotNull(ll.getRawTableString());
 		} catch (Exception e) {
 			assertNull(e.getMessage());
@@ -136,7 +136,7 @@ public class TestLogLine {
 		LogLine ll;
 		try {
 			ll = new LogLine(v);
-			assertEquals(ll.validateSplitCount(), 12);
+			assertEquals(ll.getSplitCount(), 12);
 			assertTrue(ll.addDate());
 
 			assertEquals(ll.getDbLogLine().get(0), "2013-05-14:14:00:09 +0000");
@@ -155,7 +155,7 @@ public class TestLogLine {
 		LogLine ll;
 		try {
 			ll = new LogLine(v);
-			assertEquals(ll.validateSplitCount(), 12);
+			assertEquals(ll.getSplitCount(), 12);
 			assertTrue(ll.addDate());
 
 			assertNotSame(ll.getDbLogLine().get(0), "2013-05-15:14:00:09 +0000");
@@ -172,7 +172,7 @@ public class TestLogLine {
 		LogLine ll;
 		try {
 			ll = new LogLine(v);
-			assertEquals(ll.validateSplitCount(), 12);
+			assertEquals(ll.getSplitCount(), 12);
 			assertFalse(ll.addFilename(null));
 			assertFalse(ll.addFilename(""));
 		} catch (Exception e) {

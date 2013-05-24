@@ -10,7 +10,7 @@ import ua_parser.Client;
 import ua_parser.Parser;
 
 import com.maxmind.geoip.LookupService;
-import com.mozilla.date.conversion.PstToUtc;
+import com.mozilla.date.conversion.TimeToUtc;
 import com.mozilla.geo.IPtoGeo;
 
 
@@ -19,7 +19,7 @@ public class LogLine {
 	Matcher m;
 	String line;
 	StringBuffer sb;
-	private PstToUtc pstToUtc;
+	private TimeToUtc pstToUtc;
 	private Vector<String> dbLogLine;
 	private IPtoGeo iptg;
 	private Client c_parser;
@@ -27,7 +27,7 @@ public class LogLine {
 	
 	public LogLine(String line) throws Exception {
 		dbLogLine = new Vector<String>();
-		pstToUtc = new PstToUtc();
+		pstToUtc = new TimeToUtc();
 		this.line = line;
 		if (StringUtils.isNotEmpty(this.line)) {
 			this.m = p.matcher(this.line);
@@ -36,7 +36,7 @@ public class LogLine {
 		}
 	}
 
-	public int validateSplitCount() {
+	public int getSplitCount() {
 		if (StringUtils.isNotEmpty(line)) {
 			if (m.find()) {
 				return m.groupCount();

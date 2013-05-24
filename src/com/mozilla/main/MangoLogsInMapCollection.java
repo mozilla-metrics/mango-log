@@ -169,7 +169,7 @@ public class MangoLogsInMapCollection {
 				logline = new LogLine(v);
 
 				splitTab = new Vector<String>();
-				if (logline.validateSplitCount() > 0) {
+				if (logline.getSplitCount() > 0) {
 					context.getCounter(LOG_PROGRESS.VALID_SPLIT).increment(1);
 					context.write(new Text(RAW_PREFIX), new Text(logline.getRawTableString()));
 
