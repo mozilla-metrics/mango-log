@@ -44,7 +44,7 @@ public class MangoLogsInMapCollection {
 	/**
 	 * The map class of WordCount.
 	 */
-	static enum LOG_PROGRESS { ZERO_SIZED_HTTP_REQUEST, MAPPER_LINE_COUNT, INVALID_ANONYMOUS_SPLIT_COUNT, ERROR_UA_PARSER, LOG_LINES, INVALID_SPLIT, VALID_SPLIT, ERROR_DISTRIBUTED_CACHE, ERROR_GEOIP_DAT_URI_MISSING, ERROR_GEOIP_CITY_DAT_URI_MISSING, ERROR_GEOIP_DOMAIN_DAT_URI_MISSING, SETUP_CALLS, ERROR_GEOIP_LOOKUP,ERROR_REGEXES_YAML_LOOKUP, INVALID_DATE_FORMAT, INVALID_GEO_LOOKUP, VALID_ANONYMOUS_LINE_COUNT, INVALID_ANONYMOUS_LINE_COUNT, VALID_RAW_LINE_COUNT, ERROR_GEOIP_ISP_DAT_URI_MISSING, ERROR_GEOIP_ORG_DAT_URI_MISSING };
+	static enum LOG_PROGRESS { REDUCER_COUNT, REDUCER_COUNT_IO, REDUCER_COUNT_IE, ZERO_SIZED_HTTP_REQUEST, MAPPER_LINE_COUNT, INVALID_ANONYMOUS_SPLIT_COUNT, ERROR_UA_PARSER, LOG_LINES, INVALID_SPLIT, VALID_SPLIT, ERROR_DISTRIBUTED_CACHE, ERROR_GEOIP_DAT_URI_MISSING, ERROR_GEOIP_CITY_DAT_URI_MISSING, ERROR_GEOIP_DOMAIN_DAT_URI_MISSING, SETUP_CALLS, ERROR_GEOIP_LOOKUP,ERROR_REGEXES_YAML_LOOKUP, INVALID_DATE_FORMAT, INVALID_GEO_LOOKUP, VALID_ANONYMOUS_LINE_COUNT, INVALID_ANONYMOUS_LINE_COUNT, VALID_RAW_LINE_COUNT, ERROR_GEOIP_ISP_DAT_URI_MISSING, ERROR_GEOIP_ORG_DAT_URI_MISSING };
 	public static String ANONYMIZED_PREFIX = "anonymized";
 	public static String RAW_PREFIX = "raw";
 	public static String ERROR_PREFIX = "error";
@@ -91,7 +91,7 @@ public class MangoLogsInMapCollection {
 			domain_name = splitSlash[splitSlash.length - 1];
 			customparse = new com.mozilla.custom.parse.CustomParse();
 			mos = new MultipleOutputs<Text, Text>(context);
-			
+
 			context.getCounter(LOG_PROGRESS.SETUP_CALLS).increment(1);
 			try {
 				localFiles = DistributedCache.getLocalCacheFiles(context.getConfiguration());
@@ -171,7 +171,7 @@ public class MangoLogsInMapCollection {
 				splitTab = new Vector<String>();
 				if (logline.validateSplitCount() > 0) {
 					context.getCounter(LOG_PROGRESS.VALID_SPLIT).increment(1);
-					mos.write(RAW_PREFIX, new Text(RAW_PREFIX) , new Text(logline.getRawTableString()));					
+					context.write(new Text(RAW_PREFIX), new Text(logline.getRawTableString()));
 
 					context.getCounter(LOG_PROGRESS.VALID_RAW_LINE_COUNT).increment(1);
 
@@ -196,10 +196,9 @@ public class MangoLogsInMapCollection {
 					}
 
 					if (validAnonymizedLine) {
-						
-						if (logline.checkOutputFormat()) {
 
-							mos.write(ANONYMIZED_PREFIX, new Text(ANONYMIZED_PREFIX) , new Text(logline.getOutputLine()));
+						if (logline.checkOutputFormat()) {
+							context.write(new Text(ANONYMIZED_PREFIX), new Text(logline.getOutputLine()));
 							context.getCounter(LOG_PROGRESS.VALID_ANONYMOUS_LINE_COUNT).increment(1);
 
 						} else {
@@ -227,7 +226,7 @@ public class MangoLogsInMapCollection {
 				e.printStackTrace();
 			} finally {
 				if (!validAnonymizedLine) {
-					mos.write(ERROR_PREFIX, new Text(ERROR_PREFIX) , new Text(value));
+					context.write(new Text(ERROR_PREFIX), new Text(value));
 				}
 
 			}
@@ -242,14 +241,38 @@ public class MangoLogsInMapCollection {
 	 * The reducer class of WordCount
 	 */
 	public static class MangoLogsInMapCollectionReducer extends
-	Reducer<Text, Text, LongWritable, Text> {
+	Reducer<Text, Text, Text, Text> {
+		private MultipleOutputs<Text, Text> mos;
+
+		public void setup (Context context) {
+			mos = new MultipleOutputs<Text, Text>(context);		
+
+		}
 
 		public void reduce(Text key, Iterable<Text> values,
-				Context context) throws IOException, InterruptedException {
-			//context.write(new LongWritable(1L), key);
+				Context context) {
+
+			for (Text v : values) {
+				try {
+					mos.write(key.toString(), new Text(key), new Text(v));
+					context.write(new Text(key), new Text(v));
+				} catch (InterruptedException ie) {
+					System.out.println(ie.getMessage());
+					context.getCounter(LOG_PROGRESS.REDUCER_COUNT_IE).increment(1);	
+				} catch (IOException io) {
+					System.out.println(io.getMessage());
+					context.getCounter(LOG_PROGRESS.REDUCER_COUNT_IO).increment(1);
+				}
+
+			}
 
 
 		}
+		protected void cleanup(Context context) throws IOException, InterruptedException {
+			mos.close();
+		}
+
+
 	}
 
 	/**
@@ -289,8 +312,8 @@ public class MangoLogsInMapCollection {
 		MultipleOutputs.addNamedOutput(job, RAW_PREFIX, SequenceFileOutputFormat.class , Text.class, Text.class);
 		MultipleOutputs.addNamedOutput(job, ERROR_PREFIX, SequenceFileOutputFormat.class , Text.class, Text.class);
 
-		job.setNumReduceTasks(0);
-		
+		job.setNumReduceTasks(1);
+
 		System.exit(job.waitForCompletion(true) ? 0 : 1);
 
 	}
