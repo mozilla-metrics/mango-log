@@ -257,10 +257,10 @@ public class MangoLogsInMapCollection {
 					mos.write(key.toString(), new Text(key), new Text(v));
 					context.write(new Text(key), new Text(v));
 				} catch (InterruptedException ie) {
-					System.out.println(ie.getMessage());
+					System.err.println(ie.getMessage());
 					context.getCounter(LOG_PROGRESS.REDUCER_COUNT_IE).increment(1);	
 				} catch (IOException io) {
-					System.out.println(io.getMessage());
+					System.err.println(io.getMessage());
 					context.getCounter(LOG_PROGRESS.REDUCER_COUNT_IO).increment(1);
 				}
 
