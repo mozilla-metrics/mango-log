@@ -7,6 +7,7 @@ import static org.junit.Assert.*;
 
 import java.util.regex.Matcher;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import ua_parser.Parser;
@@ -191,5 +192,17 @@ public class TestLogLine {
 		
 	}
 
+	@Test
+	public void testJobDate() {
+		String d = "";
+		 String input = "/user/aphadke/temp_intermediate_raw_anon_logs-addons.mozilla.org-2013-06-03/";
+		String[] splitSlash = StringUtils.split(input, "/");
+		if (splitSlash.length > 0) {
+			String[] splitDash = StringUtils.split(splitSlash[2],"-");
+			System.err.println(splitDash[2] + "-" + splitDash[3] + "-" + splitDash[4]);
+		}
+		
+		
+	}
 
 }

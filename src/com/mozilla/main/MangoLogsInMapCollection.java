@@ -274,7 +274,18 @@ public class MangoLogsInMapCollection {
 
 
 	}
+	
+	public static String getJobDate(String input) {
+		 // /user/aphadke/temp_intermediate_raw_anon_logs-addons.mozilla.org-2013-06-03/
+		String[] splitSlash = StringUtils.split(input, "/");
+		if (splitSlash.length > 0) {
+			String[] splitDash = StringUtils.split(splitSlash[2],"-");
+			return (splitDash[2] + "-" + splitDash[3] + "-" + splitDash[4]);
+		}
 
+		
+		return "";
+	}
 	/**
 	 * The main entry point.
 	 */
@@ -299,7 +310,7 @@ public class MangoLogsInMapCollection {
 		job.setReducerClass(MangoLogsInMapCollectionReducer.class);
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(Text.class);
-		job.setJobName("Logs " + args[2]);
+		job.setJobName("Logs: " + args[3] + ":" + getJobDate(args[1]));
 		job.setOutputFormatClass(SequenceFileOutputFormat.class);
 
 		FileOutputFormat.setCompressOutput(job, true);
