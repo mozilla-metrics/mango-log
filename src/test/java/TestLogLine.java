@@ -80,7 +80,7 @@ public class TestLogLine {
 		} catch (Exception e) {
 			assertNull(e.getMessage());
 		}
-		
+
 	}
 
 	/**
@@ -129,9 +129,9 @@ public class TestLogLine {
 		} catch (Exception e) {
 			assertNull(e.getMessage());
 		}
-		
+
 	}
-	
+
 	@Test
 	public void testCorrectaddDate() {
 
@@ -144,7 +144,7 @@ public class TestLogLine {
 
 			assertEquals(ll.getDbLogLine().get(0), "2013-05-14:14:00:09 +0000");
 			assertEquals(ll.getDbLogLine().get(1), ll.getDbSplitPattern().group(4));
-			
+
 		} catch (Exception e) {
 			assertNull(e.getMessage());
 		}
@@ -162,7 +162,7 @@ public class TestLogLine {
 			assertTrue(ll.addDate());
 
 			assertNotSame(ll.getDbLogLine().get(0), "2013-05-15:14:00:09 +0000");
-			
+
 		} catch (Exception e) {
 			assertNull(e.getMessage());
 		}
@@ -180,7 +180,7 @@ public class TestLogLine {
 			//System.err.println(ll.getSplitCount());
 			assertEquals(ll.getSplitCount(), 12);
 			Matcher m = ll.getDbSplitPattern();
-			
+
 			for (int i = 1; i <= m.groupCount(); i++) {
 				System.err.println(m.group(i));
 			}
@@ -189,20 +189,20 @@ public class TestLogLine {
 		} catch (Exception e) {
 			assertNull(e.getMessage());
 		}
-		
+
 	}
 
 	@Test
 	public void testJobDate() {
 		String d = "";
-		 String input = "/user/aphadke/temp_intermediate_raw_anon_logs-addons.mozilla.org-2013-06-03/";
+		String input = "/user/aphadke/temp_intermediate_raw_anon_logs-addons.mozilla.org-2013-06-03/";
 		String[] splitSlash = StringUtils.split(input, "/");
 		if (splitSlash.length > 0) {
 			String[] splitDash = StringUtils.split(splitSlash[2],"-");
 			System.err.println(splitDash[2] + "-" + splitDash[3] + "-" + splitDash[4]);
 		}
-		
-		
+
+
 	}
 
 }
