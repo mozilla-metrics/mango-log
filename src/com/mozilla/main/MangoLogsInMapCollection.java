@@ -19,7 +19,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.filecache.DistributedCache;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.compress.GzipCodec;
 import org.apache.hadoop.mapreduce.Job;
@@ -30,7 +29,6 @@ import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import ua_parser.Client;
 import ua_parser.Parser;
@@ -72,7 +70,6 @@ public class MangoLogsInMapCollection {
 		private boolean missingDatFile = false;
 		private Parser ua_parser;
 		private Client c_parser;
-		private com.mozilla.custom.parse.CustomParse customparse;
 		private InputStream is;
 
 		private LogLine logline;
@@ -89,7 +86,7 @@ public class MangoLogsInMapCollection {
 			splitSlash = fileSplit.getPath().toString().split("/");
 			input_fname = splitSlash[splitSlash.length - 2];
 			domain_name = splitSlash[splitSlash.length - 1];
-			customparse = new com.mozilla.custom.parse.CustomParse();
+			
 			mos = new MultipleOutputs<Text, Text>(context);
 
 			context.getCounter(LOG_PROGRESS.SETUP_CALLS).increment(1);

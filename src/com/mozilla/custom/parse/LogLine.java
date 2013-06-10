@@ -15,25 +15,25 @@ import com.mozilla.geo.IPtoGeo;
 
 
 public class LogLine {
-	Pattern p = Pattern.compile("(?>([^\\s]+)\\s([^\\s]*)\\s(?>-|([^-](?:[^\\[\\s]++(?:(?!\\s\\[)[\\[\\s])?)++))\\s\\[(\\d{2}/\\w{3}/\\d{4}:\\d{2}:\\d{2}:\\d{2}\\s[-+]\\d{4})\\]\\s)(?>\"([A-Z]+)\\s([^\\s]*)\\sHTTP/1\\.[01]\"\\s(\\d{3})\\s(\\d+)\\s\"([^\"]+)\"\\s)(?>\"\"?([^\"]*)\"?\")(?>\\s\"([^\"]*)\")(?>\\s\"([^\"]*)\")?");
+	final Pattern p = Pattern.compile("(?>([^\\s]+)\\s([^\\s]*)\\s(?>-|([^-](?:[^\\[\\s]++(?:(?!\\s\\[)[\\[\\s])?)++))\\s\\[(\\d{2}/\\w{3}/\\d{4}:\\d{2}:\\d{2}:\\d{2}\\s[-+]\\d{4})\\]\\s)(?>\"([A-Z]+)\\s([^\\s]*)\\sHTTP/1\\.[01]\"\\s(\\d{3})\\s(\\d+)\\s\"([^\"]+)\"\\s)(?>\"\"?([^\"]*)\"?\")(?>\\s\"([^\"]*)\")(?>\\s\"([^\"]*)\")?");
 	
 	Matcher m;
 	String line;
 	StringBuffer sb;
-	private TimeToUtc pstToUtc;
+	private TimeToUtc timeToUtc;
 	private Vector<String> dbLogLine;
 	private IPtoGeo iptg;
-	private Client c_parser;
-	private String user_agent;
+	private Client cParser;
+	private String userAgent;
 	
 	public LogLine(String line) throws Exception {
-		dbLogLine = new Vector<String>();
-		pstToUtc = new TimeToUtc();
+		dbLogLine = new Vector<String>(30);
+		timeToUtc = new TimeToUtc();
 		this.line = line;
 		if (StringUtils.isNotEmpty(this.line)) {
 			this.m = p.matcher(this.line);
 		} else {
-			throw new Exception("input argument is null");
+			throw new IllegalArgumentException("input argument is null");
 		}
 	}
 
@@ -55,7 +55,7 @@ public class LogLine {
 	}
 
 	public boolean addDate() {
-		String utcDate = pstToUtc.getUTCDate(m.group(4));
+		String utcDate = timeToUtc.getUTCDate(m.group(4));
 
 		if (StringUtils.isNotBlank(utcDate)) {
 			dbLogLine.insertElementAt(utcDate, 0); //utc date
@@ -123,52 +123,46 @@ public class LogLine {
 	}
 	
 	public boolean addUserAgentInfo(Parser ua_parser) {
-		c_parser = ua_parser.parse(m.group(10));
-		user_agent = c_parser.userAgent.family;
-		/*
-		if (StringUtils.isNotBlank(user_agent)) {
-			user_agent = customparse.tabletUAParse(m.group(10), user_agent);
-		} else {
-			user_agent = "NULL_UA_FAMILY";
-		}
-		*/
-		dbLogLine.insertElementAt(user_agent, 15);
+		cParser = ua_parser.parse(m.group(10));
+		userAgent = cParser.userAgent.family;
 
-		user_agent = c_parser.userAgent.major;
-		if (StringUtils.isBlank(user_agent)) {
-			user_agent = "NULL_UA_MAJOR";
-		}
-		dbLogLine.insertElementAt(user_agent, 16);
+		dbLogLine.insertElementAt(userAgent, 15);
 
-		user_agent = c_parser.userAgent.minor;
-		if (StringUtils.isBlank(user_agent)) {
-			user_agent = "NULL_UA_MINOR";
+		userAgent = cParser.userAgent.major;
+		if (StringUtils.isBlank(userAgent)) {
+			userAgent = "NULL_UA_MAJOR";
 		}
-		dbLogLine.insertElementAt(user_agent, 17);
+		dbLogLine.insertElementAt(userAgent, 16);
 
-		user_agent = c_parser.os.family;
-		if (StringUtils.isBlank(user_agent)) {
-			user_agent = "NULL_OS_FAMILY";
+		userAgent = cParser.userAgent.minor;
+		if (StringUtils.isBlank(userAgent)) {
+			userAgent = "NULL_UA_MINOR";
 		}
-		dbLogLine.insertElementAt(user_agent, 18);
+		dbLogLine.insertElementAt(userAgent, 17);
 
-		user_agent = c_parser.os.major;
-		if (StringUtils.isBlank(user_agent)) {
-			user_agent = "NULL_OS_MAJOR";
+		userAgent = cParser.os.family;
+		if (StringUtils.isBlank(userAgent)) {
+			userAgent = "NULL_OS_FAMILY";
 		}
-		dbLogLine.insertElementAt(user_agent, 19);
+		dbLogLine.insertElementAt(userAgent, 18);
 
-		user_agent = c_parser.os.minor;
-		if (StringUtils.isBlank(user_agent)) {
-			user_agent = "NULL_OS_MINOR";
+		userAgent = cParser.os.major;
+		if (StringUtils.isBlank(userAgent)) {
+			userAgent = "NULL_OS_MAJOR";
 		}
-		dbLogLine.insertElementAt(user_agent, 20);
+		dbLogLine.insertElementAt(userAgent, 19);
 
-		user_agent = c_parser.device.family;
-		if (StringUtils.isBlank(user_agent)) {
-			user_agent = "NULL_DEVICE_FAMILY";
+		userAgent = cParser.os.minor;
+		if (StringUtils.isBlank(userAgent)) {
+			userAgent = "NULL_OS_MINOR";
 		}
-		dbLogLine.insertElementAt(user_agent, 21);
+		dbLogLine.insertElementAt(userAgent, 20);
+
+		userAgent = cParser.device.family;
+		if (StringUtils.isBlank(userAgent)) {
+			userAgent = "NULL_DEVICE_FAMILY";
+		}
+		dbLogLine.insertElementAt(userAgent, 21);
 		
 		return true;
 	}
@@ -206,22 +200,5 @@ public class LogLine {
 		return sb.toString().trim();
 
 	}
-	
-	
-	
-	
-	
-	
-	
-	
 }
-
-
-
-
-
-
-
-
-
 

@@ -89,7 +89,6 @@ public class MangoLogs {
 		private boolean missingDatFile = false;
 		private Parser ua_parser;
 		private Client c_parser;
-		private com.mozilla.custom.parse.CustomParse customparse;
 		private InputStream is;
 
 		private LogLine logline;
@@ -99,7 +98,6 @@ public class MangoLogs {
 		 */
 
 		public void setup(Context context) {
-			customparse = new com.mozilla.custom.parse.CustomParse();
 			mos = new MultipleOutputs<Text, Text>(context);
 			context.getCounter(LOG_PROGRESS.SETUP_CALLS).increment(1);
 			try {
