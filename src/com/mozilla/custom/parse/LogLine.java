@@ -15,7 +15,7 @@ import com.mozilla.geo.IPtoGeo;
 
 
 public class LogLine {
-	final Pattern p = Pattern.compile("(?>([^\\s]+)\\s([^\\s]*)\\s(?>-|([^-](?:[^\\[\\s]++(?:(?!\\s\\[)[\\[\\s])?)++))\\s\\[(\\d{2}/\\w{3}/\\d{4}:\\d{2}:\\d{2}:\\d{2}\\s[-+]\\d{4})\\]\\s)(?>\"([A-Z]+)\\s([^\\s]*)\\sHTTP/1\\.[01]\"\\s(\\d{3})\\s(\\d+)\\s\"([^\"]+)\"\\s)(?>\"\"?([^\"]*)\"?\")(?>\\s\"([^\"]*)\")(?>\\s\"([^\"]*)\")?");
+	Pattern p = Pattern.compile("(?>([^\\s]+)\\s([^\\s]*)\\s(?>-|([^-](?:[^\\[\\s]++(?:(?!\\s\\[)[\\[\\s])?)++))\\s\\[(\\d{2}/\\w{3}/\\d{4}:\\d{2}:\\d{2}:\\d{2}\\s[-+]\\d{4})\\]\\s)(?>\"([A-Z]+)\\s([^\\s]*)\\sHTTP/1\\.[01]\"\\s(\\d{3})\\s(\\d+)\\s\"([^\"]+)\"\\s)(?>\"\"?([^\"]*)\"?\")(?>\\s\"([^\"]*)\")(?>\\s\"([^\"]*)\")?");
 	
 	Matcher m;
 	String line;
@@ -26,12 +26,17 @@ public class LogLine {
 	private Client cParser;
 	private String userAgent;
 	
-	public LogLine(String line) throws Exception {
+	public LogLine(String line, String domain_name) throws Exception {
 		dbLogLine = new Vector<String>(30);
 		timeToUtc = new TimeToUtc();
 		this.line = line;
 		if (StringUtils.isNotEmpty(this.line)) {
-			this.m = p.matcher(this.line);
+			if (StringUtils.equals(domain_name, "marketplace.mozilla.org")) {
+			    p = Pattern.compile("(?>([^\\s]+)\\s([^\\s]*)\\s(?>-|([^-](?:[^\\[\\s]++(?:(?!\\s\\[)[\\[\\s])?)++))\\s\\[(\\d{2}/\\w{3}/\\d{4}:\\d{2}:\\d{2}:\\d{2}\\s[-+]\\d{4})\\]\\s)(?>\"([A-Z]+)\\s([^\\s]*)\\sHTTP/1\\.[01]\"\\s(\\d{3})\\s(\\d+)\\s\"([^\"]+)\"\\s)(?>\"\"?([^\"]*)\"?\")(?>\\s\"([^\"]*)\")(?>\\s\"([^\"]*)\")(?>\\s\"([^\"]*)\")?");
+			}
+			
+            this.m = p.matcher(this.line);
+			
 		} else {
 			throw new IllegalArgumentException("input argument is null");
 		}

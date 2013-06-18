@@ -172,7 +172,7 @@ public class MangoLogs {
 				validAnonymizedLine = true;
 				String v = key.toString();
 				try {
-					logline = new LogLine(v);
+					logline = new LogLine(v, "");
 					
 					splitTab = new Vector<String>();
 					if (logline.getSplitCount() > 0) {
