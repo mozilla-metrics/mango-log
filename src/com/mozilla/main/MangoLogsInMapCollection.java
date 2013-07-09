@@ -323,7 +323,7 @@ public class MangoLogsInMapCollection {
         MultipleOutputs.addNamedOutput(job, RAW_PREFIX, SequenceFileOutputFormat.class , Text.class, Text.class);
         MultipleOutputs.addNamedOutput(job, ERROR_PREFIX, SequenceFileOutputFormat.class , Text.class, Text.class);
 
-        //job.setNumReduceTasks(1);
+        job.setNumReduceTasks(20);
 
         System.exit(job.waitForCompletion(true) ? 0 : 1);
 
