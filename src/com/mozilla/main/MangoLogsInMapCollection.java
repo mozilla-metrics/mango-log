@@ -46,7 +46,7 @@ public class MangoLogsInMapCollection {
     public static String ANONYMIZED_PREFIX = "anonymized";
     public static String RAW_PREFIX = "raw";
     public static String ERROR_PREFIX = "error";
-    public static String DISTRIBUTED_CACHE_URI = "hdfs://admin1.testing.stage.metrics.scl3.mozilla.com:8020/user/aphadke/maxmind/";
+    public static String DISTRIBUTED_CACHE_URI = "hdfs://node3.admin.mango.metrics.scl3.mozilla.com:8020/user/aphadke/maxmind-2013-07/";
     public static String GEOIP_CITY_DAT = "GeoIPCity.dat";
     public static String GEOIP_ORG_DAT = "GeoIPOrg.dat";
     public static String GEOIP_DOMAIN_DAT = "GeoIPDomain.dat";
@@ -173,6 +173,8 @@ public class MangoLogsInMapCollection {
                 if (logline.getSplitCount() > 0) {
                     context.getCounter(LOG_PROGRESS.VALID_SPLIT).increment(1);
                     context.write(new Text(RAW_PREFIX), new Text(logline.getRawTableString()));
+                    
+                    mos.write(RAW_PREFIX, new Text(RAW_PREFIX), new Text(logline.getRawTableString()));
 
                     context.getCounter(LOG_PROGRESS.VALID_RAW_LINE_COUNT).increment(1);
 
@@ -200,6 +202,8 @@ public class MangoLogsInMapCollection {
 
                         if (logline.checkOutputFormat()) {
                             context.write(new Text(ANONYMIZED_PREFIX), new Text(logline.getOutputLine()));
+                            mos.write(ANONYMIZED_PREFIX, new Text(ANONYMIZED_PREFIX), new Text(logline.getOutputLine()));
+
                             context.getCounter(LOG_PROGRESS.VALID_ANONYMOUS_LINE_COUNT).increment(1);
 
                         } else {
@@ -227,6 +231,8 @@ public class MangoLogsInMapCollection {
                 e.printStackTrace();
             } finally {
                 context.write(new Text(ERROR_PREFIX), new Text(value));
+                mos.write(ERROR_PREFIX, new Text(ERROR_PREFIX), new Text(value));
+                
 
             }
         }
@@ -323,7 +329,7 @@ public class MangoLogsInMapCollection {
         MultipleOutputs.addNamedOutput(job, RAW_PREFIX, SequenceFileOutputFormat.class , Text.class, Text.class);
         MultipleOutputs.addNamedOutput(job, ERROR_PREFIX, SequenceFileOutputFormat.class , Text.class, Text.class);
 
-        job.setNumReduceTasks(20);
+        job.setNumReduceTasks(Integer.parseInt(args[2]));
 
         System.exit(job.waitForCompletion(true) ? 0 : 1);
 
