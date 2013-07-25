@@ -13,6 +13,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.List;
 import java.util.Vector;
 
 import org.apache.commons.lang3.StringUtils;
@@ -42,6 +43,7 @@ public class MangoLogsInMapCollection {
     /**
      * The map class of WordCount.
      */
+    
     static enum LOG_PROGRESS { REDUCER_COUNT, REDUCER_COUNT_IO, REDUCER_COUNT_IE, ZERO_SIZED_HTTP_REQUEST, MAPPER_LINE_COUNT, INVALID_ANONYMOUS_SPLIT_COUNT, ERROR_UA_PARSER, LOG_LINES, INVALID_SPLIT, VALID_SPLIT, ERROR_DISTRIBUTED_CACHE, ERROR_GEOIP_DAT_URI_MISSING, ERROR_GEOIP_CITY_DAT_URI_MISSING, ERROR_GEOIP_DOMAIN_DAT_URI_MISSING, SETUP_CALLS, ERROR_GEOIP_LOOKUP,ERROR_REGEXES_YAML_LOOKUP, INVALID_DATE_FORMAT, INVALID_GEO_LOOKUP, VALID_ANONYMOUS_LINE_COUNT, INVALID_ANONYMOUS_LINE_COUNT, VALID_RAW_LINE_COUNT, ERROR_GEOIP_ISP_DAT_URI_MISSING, ERROR_GEOIP_ORG_DAT_URI_MISSING, DEBUG_COUNTER };
     public static String ANONYMIZED_PREFIX = "anonymized";
     public static String RAW_PREFIX = "raw";
@@ -71,7 +73,7 @@ public class MangoLogsInMapCollection {
         private Parser ua_parser;
         private Client c_parser;
         private InputStream is;
-
+        private int REDUCER_COUNT; 
         private LogLine logline;
         /**
          * runs before starting every mapper
@@ -93,7 +95,8 @@ public class MangoLogsInMapCollection {
             try {
                 localFiles = DistributedCache.getLocalCacheFiles(context.getConfiguration());
                 domain_name = context.getConfiguration().get(DOMAIN_NAME);
-
+                REDUCER_COUNT = Integer.parseInt(context.getConfiguration().get("REDUCER_COUNT"));
+                
             } catch (IOException e1) {
                 // TODO Auto-generated catch block
                 context.getCounter(LOG_PROGRESS.ERROR_DISTRIBUTED_CACHE).increment(1);
@@ -173,8 +176,10 @@ public class MangoLogsInMapCollection {
                 if (logline.getSplitCount() > 0) {
                     context.getCounter(LOG_PROGRESS.VALID_SPLIT).increment(1);
                     context.write(new Text(RAW_PREFIX), new Text(logline.getRawTableString()));
-                    
-                    mos.write(RAW_PREFIX, new Text(RAW_PREFIX), new Text(logline.getRawTableString()));
+
+                    if (REDUCER_COUNT == 0) {
+                        mos.write(RAW_PREFIX, new Text(RAW_PREFIX), new Text(logline.getRawTableString()));
+                    }
 
                     context.getCounter(LOG_PROGRESS.VALID_RAW_LINE_COUNT).increment(1);
 
@@ -201,8 +206,12 @@ public class MangoLogsInMapCollection {
                     if (validAnonymizedLine) {
 
                         if (logline.checkOutputFormat()) {
-                            context.write(new Text(ANONYMIZED_PREFIX), new Text(logline.getOutputLine()));
-                            mos.write(ANONYMIZED_PREFIX, new Text(ANONYMIZED_PREFIX), new Text(logline.getOutputLine()));
+                            if (REDUCER_COUNT != 0) {
+                                context.write(new Text(ANONYMIZED_PREFIX), new Text(logline.getOutputLine()));
+                            }
+                            else {
+                                mos.write(ANONYMIZED_PREFIX, new Text(ANONYMIZED_PREFIX), new Text(logline.getOutputLine()));
+                            }
 
                             context.getCounter(LOG_PROGRESS.VALID_ANONYMOUS_LINE_COUNT).increment(1);
 
@@ -230,9 +239,12 @@ public class MangoLogsInMapCollection {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             } finally {
-                context.write(new Text(ERROR_PREFIX), new Text(value));
-                mos.write(ERROR_PREFIX, new Text(ERROR_PREFIX), new Text(value));
-                
+                if (REDUCER_COUNT != 0) {
+                    context.write(new Text(ERROR_PREFIX), new Text(value));
+                } else {
+                    mos.write(ERROR_PREFIX, new Text(ERROR_PREFIX), new Text(value));
+                }
+
 
             }
         }
@@ -301,6 +313,8 @@ public class MangoLogsInMapCollection {
         }
         Configuration c = new Configuration();
         c.set(DOMAIN_NAME, args[3]);
+        int reducerCount = Integer.parseInt(args[2]);
+        c.set("REDUCER_COUNT", reducerCount + "");
         DistributedCache.addCacheFile(new URI(DISTRIBUTED_CACHE_URI + GEOIP_CITY_DAT), c);
         DistributedCache.addCacheFile(new URI(DISTRIBUTED_CACHE_URI + GEOIP_DOMAIN_DAT), c);
         DistributedCache.addCacheFile(new URI(DISTRIBUTED_CACHE_URI + GEOIP_ISP_DAT), c);
@@ -329,9 +343,16 @@ public class MangoLogsInMapCollection {
         MultipleOutputs.addNamedOutput(job, RAW_PREFIX, SequenceFileOutputFormat.class , Text.class, Text.class);
         MultipleOutputs.addNamedOutput(job, ERROR_PREFIX, SequenceFileOutputFormat.class , Text.class, Text.class);
 
-        job.setNumReduceTasks(Integer.parseInt(args[2]));
+    
+        job.setNumReduceTasks(reducerCount);
 
         System.exit(job.waitForCompletion(true) ? 0 : 1);
 
     }
 }
+
+
+
+
+
+
