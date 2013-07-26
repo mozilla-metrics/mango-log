@@ -206,11 +206,11 @@ public class MangoLogsInMapCollection {
                     if (validAnonymizedLine) {
 
                         if (logline.checkOutputFormat()) {
-                            if (REDUCER_COUNT != 0) {
-                                context.write(new Text(ANONYMIZED_PREFIX), new Text(logline.getOutputLine()));
+                            if (REDUCER_COUNT == 0) {
+                                mos.write(ANONYMIZED_PREFIX, new Text(ANONYMIZED_PREFIX), new Text(logline.getOutputLine()));
                             }
                             else {
-                                mos.write(ANONYMIZED_PREFIX, new Text(ANONYMIZED_PREFIX), new Text(logline.getOutputLine()));
+                                context.write(new Text(ANONYMIZED_PREFIX), new Text(logline.getOutputLine()));
                             }
 
                             context.getCounter(LOG_PROGRESS.VALID_ANONYMOUS_LINE_COUNT).increment(1);
@@ -239,10 +239,10 @@ public class MangoLogsInMapCollection {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             } finally {
-                if (REDUCER_COUNT != 0) {
-                    context.write(new Text(ERROR_PREFIX), new Text(value));
-                } else {
+                if (REDUCER_COUNT == 0) {
                     mos.write(ERROR_PREFIX, new Text(ERROR_PREFIX), new Text(value));
+                } else {
+                    context.write(new Text(ERROR_PREFIX), new Text(value));
                 }
 
 
