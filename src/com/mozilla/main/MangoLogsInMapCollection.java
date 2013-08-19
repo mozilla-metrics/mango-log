@@ -293,10 +293,10 @@ public class MangoLogsInMapCollection {
     }
 
     public static String getJobDate(String input) {
-        // /user/aphadke/temp_intermediate_raw_anon_logs-addons.mozilla.org-2013-06-03/
+        // /user/aphadke/tmp/temp_intermediate_raw_anon_logs-addons.mozilla.org-2013-06-03/
         String[] splitSlash = StringUtils.split(input, "/");
         if (splitSlash.length > 0) {
-            String[] splitDash = StringUtils.split(splitSlash[2],"-");
+            String[] splitDash = StringUtils.split(splitSlash[3],"-");
             return (splitDash[2] + "-" + splitDash[3] + "-" + splitDash[4]);
         }
 

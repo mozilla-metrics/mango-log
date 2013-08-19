@@ -57,11 +57,18 @@ public class TestLogLine {
 	 */
 	@Test
 	public void testValidateSplitAmoLine() {
-		String v = "1.1.1.1 addons.mozilla.org - [15/May/2013:00:00:00 -0700] \"GET /blocklist/3/%7Bec8030f7-c20a-464f-9b0e-13a3a9e97384%7D/19.0/Firefox/20130215130331/WINNT_x86-msvc/fi/release/Windows_NT%205.1/default/default/4/434/1/ HTTP/1.1\" 200 64622 \"-\" \"Mozilla/5.0 (Windows NT 5.1; rv:19.0) Gecko/20100101 Firefox/19.0\" \"-\" \"DNT:-\"";		
+		String v = "187.22.120.82 addons.mozilla.org - [29/Jul/2013:00:19:57 +0000] \"GET /blocklist/3/%7Bec8030f7-c20a-464f-9b0e-13a3a9e97384%7D/22.0/Firefox/20130618035212/WINNT_x86-msvc/pt-BR/release/Windows_NT%206.1/default/default/21/75/1/ HTTP/1.1\" 200 8228 \"-\" \"Mozilla/5.0 (Windows NT 6.1; WOW64; rv:22.0) Gecko/20100101 Firefox/22.0\" \"__utma=150903082.120566378.1363530862.1369872736.1374269744.4; __utmz=150903082.1363530862.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); optimizelySegments=%7B%22197878113%22%3A%22none%22%2C%22197755715%22%3A%22direct%22%2C%22197870141%22%3A%22ff%22%2C%22197869430%22%3A%22false%22%2C%22246002457%22%3A%22campaign%22%2C%22246073290%22%3A%22ff%22%2C%22245984388%22%3A%22false%22%2C%22246073289%22%3A%22none%22%7D; optimizelyEndUserId=oeu1373232329475r0.13031423857226065; optimizelyBuckets=%7B%7D\" 272";		
 		LogLine ll;
 		try {
 			ll = new LogLine(v, "addons.mozilla.org");
 			assertEquals(ll.getSplitCount(), 12);
+			
+            Matcher m = ll.getDbSplitPattern();
+
+            for (int i = 1; i <= m.groupCount(); i++) {
+                System.err.println(m.group(i));
+            }
+            			
 		} catch (Exception e) {
 			assertNull(e.getMessage());
 		}
@@ -76,7 +83,7 @@ public class TestLogLine {
 		LogLine ll;
 		try {
 			ll = new LogLine(v, "marketplace.mozilla.org");
-			assertEquals(ll.getSplitCount(), 13);
+			assertEquals(ll.getSplitCount(), 12);
 			
             Matcher m = ll.getDbSplitPattern();
 
