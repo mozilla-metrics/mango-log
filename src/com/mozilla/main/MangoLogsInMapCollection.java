@@ -48,7 +48,8 @@ public class MangoLogsInMapCollection {
     public static String ANONYMIZED_PREFIX = "anonymized";
     public static String RAW_PREFIX = "raw";
     public static String ERROR_PREFIX = "error";
-    public static String DISTRIBUTED_CACHE_URI = "hdfs://node3.admin.mango.metrics.scl3.mozilla.com:8020/user/aphadke/maxmind-2013-07/";
+    //public static String DISTRIBUTED_CACHE_URI = "hdfs://node3.admin.mango.metrics.scl3.mozilla.com:8020/user/aphadke/maxmind-2013-07/";
+    public static String DISTRIBUTED_CACHE_URI = "/user/metrics-etl/maxmind/";
     public static String GEOIP_CITY_DAT = "GeoIPCity.dat";
     public static String GEOIP_ORG_DAT = "GeoIPOrg.dat";
     public static String GEOIP_DOMAIN_DAT = "GeoIPDomain.dat";
