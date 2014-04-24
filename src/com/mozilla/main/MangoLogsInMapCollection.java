@@ -33,8 +33,10 @@ import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 
 import ua_parser.Client;
 import ua_parser.Parser;
+import ua_parser.CachingParser;
 
 import com.maxmind.geoip.LookupService;
+import com.maxmind.geoip2.DatabaseReader;
 import com.mozilla.custom.parse.LogLine;
 import com.mozilla.domain.CheckLogLine;
 import com.mozilla.geo.IPtoGeo;
@@ -49,8 +51,10 @@ public class MangoLogsInMapCollection {
     public static String RAW_PREFIX = "raw";
     public static String ERROR_PREFIX = "error";
     //public static String DISTRIBUTED_CACHE_URI = "hdfs://node3.admin.mango.metrics.scl3.mozilla.com:8020/user/aphadke/maxmind-2013-07/";
-    public static String DISTRIBUTED_CACHE_URI = "/user/metrics-etl/maxmind/";
-    public static String GEOIP_CITY_DAT = "GeoIPCity.dat";
+    public static String DISTRIBUTED_CACHE_URI = "/user/aphadke/maxmind-2/";
+    public static String GEOIP_CITY_DAT = "GeoIP2-City.mmdb";
+    public static String GEOIP_COUNTRY_DAT = "GeoIP2-Country.mmdb";
+    
     public static String GEOIP_ORG_DAT = "GeoIPOrg.dat";
     public static String GEOIP_DOMAIN_DAT = "GeoIPDomain.dat";
     public static String GEOIP_ISP_DAT = "GeoIPISP.dat";
@@ -65,7 +69,8 @@ public class MangoLogsInMapCollection {
 
         private MultipleOutputs<Text, Text> mos;
         private Path[] localFiles;
-        private LookupService cityLookup, domainLookup, orgLookup, ispLookup;
+        private LookupService domainLookup, orgLookup, ispLookup;
+        private DatabaseReader cityDatabase;
         private Vector<String> splitTab;
         private boolean validAnonymizedLine = true;
         private StringBuffer sb;
@@ -107,7 +112,8 @@ public class MangoLogsInMapCollection {
                 for (Path localFile : localFiles) {
                     if ((localFile.getName() != null) && (localFile.getName().equalsIgnoreCase(GEOIP_CITY_DAT))) {
                         try {
-                            cityLookup = new LookupService(new File(localFile.toUri().getPath()), LookupService.GEOIP_MEMORY_CACHE);
+                        	File f = new File(localFile.toUri().getPath());
+                        	cityDatabase = new com.maxmind.geoip2.DatabaseReader.Builder(f).build();
                         } catch (IOException e) {
                             // TODO Auto-generated catch block
                             missingDatFile = true;
@@ -145,7 +151,7 @@ public class MangoLogsInMapCollection {
                     if ((localFile.getName() != null) && (localFile.getName().equalsIgnoreCase("regexes.yaml"))) {
                         try {
                             is = new FileInputStream(new File(localFile.toUri().getPath()));
-                            ua_parser = new Parser(is);
+                            ua_parser = new Caching
                         } catch (IOException e) {
                             // TODO Auto-generated catch block
                             missingDatFile = true;
@@ -185,7 +191,7 @@ public class MangoLogsInMapCollection {
                     context.getCounter(LOG_PROGRESS.VALID_RAW_LINE_COUNT).increment(1);
 
                     if (logline.addDate()) {
-                        if (!logline.addGeoLookUp(cityLookup, domainLookup, ispLookup, orgLookup)) {
+                        if (!logline.addGeoLookUp(cityDatabase, domainLookup, ispLookup, orgLookup)) {
                             validAnonymizedLine = false;
                         }
                     } else {

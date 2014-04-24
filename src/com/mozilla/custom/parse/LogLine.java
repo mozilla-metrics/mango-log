@@ -10,6 +10,7 @@ import ua_parser.Client;
 import ua_parser.Parser;
 
 import com.maxmind.geoip.LookupService;
+import com.maxmind.geoip2.DatabaseReader;
 import com.mozilla.date.conversion.TimeToUtc;
 import com.mozilla.geo.IPtoGeo;
 
@@ -70,9 +71,25 @@ public class LogLine {
 		return false;
 	}
 	
-	public boolean addGeoLookUp(LookupService cityLookup, LookupService domainLookup, LookupService ispLookup, LookupService orgLookup) {
+	public boolean addGeoLookUp(DatabaseReader cityDatabase) {
 		iptg = new IPtoGeo();
-		iptg.performGeoLookup(m.group(1), cityLookup);
+		iptg.performGeoLookup(m.group(1), cityDatabase);
+		
+		dbLogLine.insertElementAt(iptg.getCountryCode(), 2);
+		dbLogLine.insertElementAt(iptg.getCountryName(), 3);
+		dbLogLine.insertElementAt(iptg.getLatitude() + "", 4);
+		dbLogLine.insertElementAt(iptg.getLongitude() + "", 5);
+		dbLogLine.insertElementAt(iptg.getStateCode() + "", 6);
+		String lookup;
+		
+		return true;
+	}
+
+	
+	public boolean addGeoLookUp(DatabaseReader cityDatabase, LookupService domainLookup, LookupService ispLookup, LookupService orgLookup) {
+		iptg = new IPtoGeo();
+		iptg.performGeoLookup(m.group(1), cityDatabase);
+		
 		dbLogLine.insertElementAt(iptg.getCountryCode(), 2);
 		dbLogLine.insertElementAt(iptg.getCountryName(), 3);
 		dbLogLine.insertElementAt(iptg.getLatitude() + "", 4);

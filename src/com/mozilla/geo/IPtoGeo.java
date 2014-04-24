@@ -2,19 +2,23 @@ package com.mozilla.geo;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.fs.Path;
 
 import com.maxmind.geoip.Location;
 import com.maxmind.geoip.LookupService;
+import com.maxmind.geoip2.DatabaseReader;
+import com.maxmind.geoip2.model.CityResponse;
 
 public class IPtoGeo {
 	private String countryCode, countryName, lookupName, stateCode;
-	
+
 	private float latitude;
 	private float longitude;
-	private Location l1;
+	Location l1;
+	CityResponse cityResponse;
 	private String GEO_LOOKUP_ERROR = "NO_GEO_LOOKUP";
 	public IPtoGeo() {
 
@@ -25,6 +29,35 @@ public class IPtoGeo {
 
 	public IPtoGeo(String ipAddress, Path p) throws IOException {
 	}
+
+	public boolean performGeoLookup(String ip, DatabaseReader cityDatabase)  {
+		if (StringUtils.isBlank(ip)) {
+			this.setCountryCode("GEO_ERROR_COUNTRY_CODE");
+			this.setCountryName("GEO_ERROR_COUNTRY_NAME");
+			this.setLatitude(-0.0f);	
+			this.setLongitude(-0.0f);
+			this.setStateCode("GEO_ERROR_STATE_CODE");
+			return false;
+		}
+		try {
+			cityResponse = cityDatabase.city(InetAddress.getByName(ip));
+		} catch (Exception e) {
+			this.setCountryCode("GEO_ERROR_COUNTRY_CODE");
+			this.setCountryName("GEO_ERROR_COUNTRY_NAME");
+			this.setLatitude(-0.0f);	
+			this.setLongitude(-0.0f);
+			this.setStateCode("GEO_ERROR_STATE_CODE");
+
+		}
+		this.setCountryCode(cityResponse.getCountry().getIsoCode());
+		this.setCountryName(cityResponse.getCountry().getName());
+		this.setLatitude(cityResponse.getLocation().getLatitude().floatValue());	
+		this.setLongitude(cityResponse.getLocation().getLongitude().floatValue());
+		this.setStateCode(cityResponse.getMostSpecificSubdivision().getName());
+		return true;
+	}
+
+
 	public boolean performGeoLookup(String ip, LookupService cl) {
 		if (StringUtils.isBlank(ip)) {
 			this.setCountryCode("GEO_ERROR_COUNTRY_CODE");
@@ -62,8 +95,8 @@ public class IPtoGeo {
 		}
 		return true;
 	}
-	
-	
+
+
 	public float getLatitude() {
 		return latitude;
 	}
