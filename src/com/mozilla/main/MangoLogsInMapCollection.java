@@ -31,9 +31,9 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 
+import ua_parser.CachingParser;
 import ua_parser.Client;
 import ua_parser.Parser;
-import ua_parser.CachingParser;
 
 import com.maxmind.geoip.LookupService;
 import com.maxmind.geoip2.DatabaseReader;
@@ -151,7 +151,8 @@ public class MangoLogsInMapCollection {
                     if ((localFile.getName() != null) && (localFile.getName().equalsIgnoreCase("regexes.yaml"))) {
                         try {
                             is = new FileInputStream(new File(localFile.toUri().getPath()));
-                            ua_parser = new Caching
+                            //ua_parser = new Parser(is);
+                            ua_parser = new CachingParser(is);
                         } catch (IOException e) {
                             // TODO Auto-generated catch block
                             missingDatFile = true;
