@@ -86,9 +86,9 @@ public class LogLine {
 	}
 
 	
-	public boolean addGeoLookUp(DatabaseReader cityDatabase, LookupService domainLookup, LookupService ispLookup, LookupService orgLookup) {
+	public boolean addGeoLookUp(LookupService cityLookup, LookupService domainLookup, LookupService ispLookup, LookupService orgLookup) {
 		iptg = new IPtoGeo();
-		iptg.performGeoLookup(m.group(1), cityDatabase);
+		iptg.performGeoLookup(m.group(1), cityLookup);
 		
 		dbLogLine.insertElementAt(iptg.getCountryCode(), 2);
 		dbLogLine.insertElementAt(iptg.getCountryName(), 3);
