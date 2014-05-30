@@ -1,4 +1,5 @@
 #!/bin/bash
+#./udf.sh src/com/mozilla/udf/ParseDateForQtr.java && scp src/com/mozilla/udf/ParseDateForQtr.jar aphadke@peach-gw.peach.metrics.scl3.mozilla.com:/home/aphadke/
 
 if [ "$1" == "" ]; then
    echo "Usage: $0 <java file>"
@@ -8,7 +9,8 @@ fi
 CNAME=${1%.java}
 JARNAME=$CNAME.jar
 JARDIR=$CNAME
-CLASSPATH=$(ls lib/hive-serde-*.jar):$(ls lib/hive-exec-*.jar):$(ls lib/hadoop-core-*.jar):$(ls lib/maxmindgeoip.jar)
+#CLASSPATH=$(ls lib/hive-serde-*.jar):$(ls lib/hive-exec-*.jar):$(ls lib/hadoop-core-*.jar):$(ls lib/maxmindgeoip.jar)
+CLASSPATH=$(ls lib/hadoop-core.jar):$(ls lib/hive-common-*.jar):$(ls lib/hadoop-common-*.jar):$(ls lib/hive-contrib-*.jar):$(ls lib/hive-exec-*.jar)
 
 function tell {
     echo

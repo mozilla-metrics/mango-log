@@ -8,11 +8,13 @@ import static org.junit.Assert.*;
 import java.util.regex.Matcher;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.hadoop.io.Text;
 import org.junit.Test;
 
 import ua_parser.Parser;
 
 import com.mozilla.custom.parse.LogLine;
+import com.mozilla.udf.ParseDateForQtr;
 
 /**
  * @author aphadke
@@ -20,6 +22,12 @@ import com.mozilla.custom.parse.LogLine;
  */
 public class TestLogLine {
 
+
+	@Test
+	public void testUDF() {
+		ParseDateForQtr pdfw = new ParseDateForQtr();
+		assertEquals("2014-Q2", pdfw.evaluate(new Text("2014-05-28:10:34:22 +0000")).toString());
+	}
 
 	/**
 	 * Test method for {@link com.mozilla.custom.parse.LogLine#validateSplit(java.lang.String)}.
@@ -62,13 +70,13 @@ public class TestLogLine {
 		try {
 			ll = new LogLine(v, "addons.mozilla.org");
 			assertEquals(ll.getSplitCount(), 12);
-			
-            Matcher m = ll.getDbSplitPattern();
 
-            for (int i = 1; i <= m.groupCount(); i++) {
-                System.err.println(m.group(i));
-            }
-            			
+			Matcher m = ll.getDbSplitPattern();
+
+			for (int i = 1; i <= m.groupCount(); i++) {
+				System.err.println(m.group(i));
+			}
+
 		} catch (Exception e) {
 			assertNull(e.getMessage());
 		}
@@ -84,15 +92,15 @@ public class TestLogLine {
 		try {
 			ll = new LogLine(v, "marketplace.mozilla.org");
 			assertEquals(ll.getSplitCount(), 12);
-			
-            Matcher m = ll.getDbSplitPattern();
 
-            for (int i = 1; i <= m.groupCount(); i++) {
-                System.err.println(m.group(i));
-            }
-			
+			Matcher m = ll.getDbSplitPattern();
+
+			for (int i = 1; i <= m.groupCount(); i++) {
+				System.err.println(m.group(i));
+			}
+
 		} catch (Exception e) {
-		    System.err.println(e.getMessage());
+			System.err.println(e.getMessage());
 			assertNull(e.getMessage());
 		}
 
