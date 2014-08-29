@@ -30,6 +30,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.partition.HashPartitioner;
 
 import ua_parser.CachingParser;
 import ua_parser.Client;
@@ -300,6 +301,13 @@ public class MangoLogsInMapCollection {
 
     }
 
+    public static class ValueHashPartitioner extends HashPartitioner<Text, Text> {
+        @Override
+        public int getPartition(Text key, Text value, int numReduceTasks) {
+            return super.getPartition(value, value, numReduceTasks);
+        }
+    }
+
     public static String getJobDate(String input) {
         // /user/aphadke/tmp/temp_intermediate_raw_anon_logs-addons.mozilla.org-2013-06-03/
         String[] splitSlash = StringUtils.split(input, "/");
@@ -340,6 +348,7 @@ public class MangoLogsInMapCollection {
         job.setOutputValueClass(Text.class);
         job.setJobName("Logs: " + args[3] + ":" + getJobDate(args[1]));
         job.setOutputFormatClass(SequenceFileOutputFormat.class);
+        job.setPartitionerClass(ValueHashPartitioner.class);
 
         FileOutputFormat.setCompressOutput(job, true);
         FileOutputFormat.setOutputCompressorClass(job, GzipCodec.class);	
